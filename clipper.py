@@ -1,5 +1,6 @@
 from pydub import AudioSegment
 import os
+import ffmpeg
 
 def concatenate_audio_files(file_list):
     combined = AudioSegment.empty()
@@ -46,13 +47,31 @@ def save_clips(audio, clip_length_ms, overlap_ms, output_dir, sura_start_times, 
         end = start + clip_length_ms
         clip = audio[start:end]
         sura_range = get_sura_range(start, end, sura_start_times, input_dir)
-        sura_range_str = "_to_".join(sura_range) if len(sura_range) > 1 else sura_range[0]
-        filename = f"clip_{sura_range_str}_n{clip_num}.mp3"
-        clip.export(os.path.join(output_dir, filename), format="mp3")
+        sura_range_str = "_".join(sura_range) if len(sura_range) > 1 else sura_range[0]
+        filename = f"sura_{sura_range_str}_c{clip_num}.m4a"  # Change extension to .m4a for AAC
+        temp_path = os.path.join(output_dir, f"temp_{filename}")
+
+        # Export the clip to a temporary file using pydub
+        clip.export(temp_path, format="mp3")
+        
+        # Use ffmpeg to re-encode the file and ensure compliance
+        output_path = os.path.join(output_dir, filename)
+        (
+            ffmpeg
+            .input(temp_path)
+            .output(output_path, codec='aac')  # Change codec to AAC
+            .run(overwrite_output=True)
+        )
+
+        # Remove the temporary file
+        os.remove(temp_path)
+        
         start = end - overlap_ms
         clip_num += 1
 
-def main(input_dir, output_dir, clip_length_minutes=10, overlap_seconds=5):
+
+
+def main(input_dir, output_dir, clip_length_minutes=5, overlap_seconds=5):
     clip_length_ms = clip_length_minutes * 60 * 1000
     overlap_ms = overlap_seconds * 1000
 
@@ -62,7 +81,7 @@ def main(input_dir, output_dir, clip_length_minutes=10, overlap_seconds=5):
     save_clips(combined_audio, clip_length_ms, overlap_ms, output_dir, sura_start_times, input_dir)
 
 if __name__ == "__main__":
-    input_directory = '/Users/hm/Downloads/Quran_Recordings/Islam_Subhi_(MP3_Quran)'  # Directory where your MP3 files are located
-    output_directory = '/Users/hm/Downloads/Quran_Recordings/Islam_Subhi_(MP3_Quran)/clips'  # Directory where the output clips will be saved
+    input_directory = '/Users/hm/Downloads/Quran_Recordings/Short_Saud_Al-Shuraim_(Updated2)(MP3_Quran)'  # Directory where your MP3 files are located
+    output_directory = '/Users/hm/Downloads/Quran_Recordings/Short_Saud_Al-Shuraim_(Updated2)(MP3_Quran)/clips'  # Directory where the output clips will be saved
     os.makedirs(output_directory, exist_ok=True)
     main(input_directory, output_directory)
