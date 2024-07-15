@@ -3,6 +3,9 @@ import os
 import ffmpeg
 from pathlib import Path
 from typing import List, Dict, Tuple
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def concatenate_audio_files(file_list: List[Path]) -> Tuple[AudioSegment, Dict[str, int]]:
     """
@@ -21,12 +24,16 @@ def concatenate_audio_files(file_list: List[Path]) -> Tuple[AudioSegment, Dict[s
 
     for file in file_list:
         sura_number = file.stem
-        sura_audio = AudioSegment.from_mp3(file)
+        try:
+            sura_audio = AudioSegment.from_mp3(file)
+        except Exception as e:
+            logging.error(f"Error loading {file}: {e}")
+            continue
+
         combined += sura_audio
         sura_start_times[sura_number] = current_time
         current_time += len(sura_audio)
-        print(f"Added sura {sura_number}.")
-        print(f"Total length {current_time / 3600000} h")
+        logging.info(f"Added sura {sura_number}. Total length {current_time / 3600000:.2f} h")
     
     return combined, sura_start_times
 
@@ -42,8 +49,12 @@ def get_sura_length(sura_number: str, input_dir: Path) -> int:
         int: Length of the sura audio file in milliseconds.
     """
     sura_file = input_dir / f"{sura_number}.mp3"
-    sura_audio = AudioSegment.from_mp3(sura_file)
-    return len(sura_audio)
+    try:
+        sura_audio = AudioSegment.from_mp3(sura_file)
+        return len(sura_audio)
+    except Exception as e:
+        logging.error(f"Error loading {sura_file}: {e}")
+        return 0
 
 def get_sura_range(start: int, end: int, sura_start_times: Dict[str, int], input_dir: Path) -> List[str]:
     """
@@ -63,11 +74,6 @@ def get_sura_range(start: int, end: int, sura_start_times: Dict[str, int], input
         sura_length = get_sura_length(sura, input_dir)
         sura_end_time = start_time + sura_length
         
-        # Check if the clip overlaps with the sura
-        # Case 1: Clip starts in the sura (start_time < end)
-        # Case 2: Clip ends in the sura (sura_end_time > start)
-        # Case 3: Clip overlaps the entire sura (both conditions true)
-        # Case 4: Clip is entirely within the sura (both conditions true)
         if start_time < end and sura_end_time > start:
             suras.append(sura)
     
@@ -96,23 +102,16 @@ def save_clips(audio: AudioSegment, clip_length_ms: int, overlap_ms: int, output
         clip = audio[start:end]
         sura_range = get_sura_range(start, end, sura_start_times, input_dir)
         sura_range_str = "_".join(sura_range) if len(sura_range) > 1 else sura_range[0]
-        filename = f"sura_{sura_range_str}_c{clip_num}.m4a"  # Change extension to .m4a for AAC
+        filename = f"sura_{sura_range_str}_c{clip_num}.m4a"
         temp_path = output_dir / f"temp_{filename}"
 
-        # Export the clip to a temporary file using pydub
-        clip.export(temp_path, format="mp3")
-        
-        # Use ffmpeg to re-encode the file and ensure compliance
-        output_path = output_dir / filename
-        (
-            ffmpeg
-            .input(temp_path)
-            .output(output_path, codec='aac')  # Change codec to AAC
-            .run(overwrite_output=True)
-        )
-
-        # Remove the temporary file
-        os.remove(temp_path)
+        try:
+            clip.export(temp_path, format="mp3")
+            output_path = output_dir / filename
+            ffmpeg.input(str(temp_path)).output(str(output_path), codec='aac').run(overwrite_output=True)
+            os.remove(temp_path)
+        except Exception as e:
+            logging.error(f"Error exporting clip {filename}: {e}")
         
         start = end - overlap_ms
         clip_num += 1
@@ -134,12 +133,13 @@ def main(input_dir: Path, output_dir: Path, clip_length_minutes: int = 5, overla
     overlap_ms = overlap_seconds * 1000
 
     files = sorted([file for file in input_dir.iterdir() if file.suffix == '.mp3'])
-    print(files[:5])
+    logging.info(f"Found {len(files)} MP3 files in {input_dir}.")
+    
     combined_audio, sura_start_times = concatenate_audio_files(files)
     
-    # Save the combined audio
     combined_audio_path = output_dir / "combined_audio.mp3"
     combined_audio.export(combined_audio_path, format="mp3")
+    logging.info(f"Combined audio saved to {combined_audio_path}.")
     
     save_clips(combined_audio, clip_length_ms, overlap_ms, output_dir, sura_start_times, input_dir)
 
