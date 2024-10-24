@@ -1,115 +1,114 @@
-"Sura Index","Sura Name","Verses","Words","Chars"
-1,"The Opening",7,74,314
-2,"The Cow",286,12316,52639
-3,"The Family of Imraan",200,7080,30276
-4,"The Women",176,7347,31845
-5,"The Table",120,5598,23932
-6,"The Cattle",165,6226,26109
-7,"The Heights",206,6796,28550
-8,"The Spoils of War",75,2525,10834
-9,"The Repentance",129,5169,22679
-10,"Jonas",109,3588,14947
-11,"Hud",123,3930,16168
-12,"Joseph",111,3566,14512
-13,"The Thunder",43,1701,7360
-14,"Abraham",52,1649,7050
-15,"The Rock",99,1389,5896
-16,"The Bee",128,3757,15908
-17,"The Night Journey",111,3223,13549
-18,"The Cave",110,3350,13823
-19,"Mary",98,2036,8188
-20,"Taa-Haa",135,2830,11608
-21,"The Prophets",112,2437,10109
-22,"The Pilgrimage",78,2537,10938
-23,"The Believers",118,2116,8871
-24,"The Light",64,2611,11316
-25,"The Criterion",77,1846,7811
-26,"The Poets",227,2710,10938
-27,"The Ant",93,2352,9712
-28,"The Stories",88,2900,11817
-29,"The Spider",69,1969,8353
-30,"The Romans",60,1636,7003
-31,"Luqman",34,1038,4415
-32,"The Prostration",30,745,3153
-33,"The Clans",73,2594,11343
-34,"Sheba",54,1741,7287
-35,"The Originator",45,1519,6492
-36,"Yaseen",83,1498,6040
-37,"Those drawn up in Ranks",182,1881,7896
-38,"The letter Saad",88,1553,6600
-39,"The Groups",75,2319,9831
-40,"The Forgiver",85,2449,10388
-41,"Explained in detail",54,1648,6929
-42,"Consultation",53,1682,7227
-43,"Ornaments of gold",89,1785,7486
-44,"The Smoke",59,710,3023
-45,"Crouching",37,999,4167
-46,"The Dunes",35,1311,5561
-47,"Muhammad",38,1099,4853
-48,"The Victory",29,1169,5157
-49,"The Inner Apartments",18,663,2889
-50,"The letter Qaaf",45,762,3150
-51,"The Winnowing Winds",60,753,3182
-52,"The Mount",49,680,2852
-53,"The Star",62,738,3072
-54,"The Moon",55,723,3155
-55,"The Beneficent",78,815,3278
-56,"The Inevitable",96,849,3538
-57,"The Iron",29,1188,5139
-58,"The Pleading Woman",22,920,4111
-59,"The Exile",24,897,3971
-60,"She that is to be examined",13,715,3129
-61,"The Ranks",14,425,1828
-62,"Friday",11,341,1406
-63,"The Hypocrites",11,367,1558
-64,"Mutual Disillusion",18,503,2182
-65,"Divorce",12,562,2511
-66,"The Prohibition",12,478,2115
-67,"The Sovereignty",30,659,2707
-68,"The Pen",52,650,2760
-69,"The Reality",52,575,2318
-70,"The Ascending Stairways",44,448,1945
-71,"Noah",28,430,1900
-72,"The Jinn",28,573,2424
-73,"The Enshrouded One",20,422,1750
-74,"The Cloaked One",56,526,2274
-75,"The Resurrection",40,353,1445
-76,"Man",31,520,2252
-77,"The Emissaries",50,402,1653
-78,"The Announcement",40,374,1618
-79,"Those who drag forth",46,418,1783
-80,"He frowned",42,306,1329
-81,"The Overthrowing",29,243,1005
-82,"The Cleaving",19,171,730
-83,"Defrauding",36,350,1520
-84,"The Splitting Open",25,243,993
-85,"The Constellations",22,211,995
-86,"The Morning Star",17,132,523
-87,"The Most High",19,144,638
-88,"The Overwhelming",26,191,835
-89,"The Dawn",30,293,1211
-90,"The City",20,177,727
-91,"The Sun",15,157,655
-92,"The Night",21,172,703
-93,"The Morning Hours",11,108,418
-94,"The Consolation",8,62,265
-95,"The Fig",8,69,280
-96,"The Clot",19,134,557
-97,"The Power, Fate",5,56,237
-98,"The Evidence",8,169,822
-99,"The Earthquake",8,75,319
-100,"The Chargers",11,83,373
-101,"The Calamity",11,86,343
-102,"Competition",8,60,259
-103,"The Declining Day, Epoch",3,29,132
-104,"The Traducer",9,66,297
-105,"The Elephant",5,46,203
-106,"Quraysh",4,41,186
-107,"Almsgiving",7,52,218
-108,"Abundance",3,26,108
-109,"The Disbelievers",6,48,191
-110,"Divine Support",3,43,191
-111,"The Palm Fibre",5,52,193
-112,"Sincerity",4,24,93
-113,"The Dawn",5,45,170
-114,"Mankind",6,38,167
+1, Al-Fatihah (the Opening)
+2, Al-Baqarah (the Cow)
+3, Aali Imran (the Family of Imran)
+4, An-Nisa’ (the Women)
+5, Al-Ma’idah (the Table)
+6, Al-An’am (the Cattle)
+7, Al-A’raf (the Heights)
+8, Al-Anfal (the Spoils of War)
+9, At-Taubah (the Repentance)
+10, Yunus (Yunus)
+11, Hud (Hud)
+12, Yusuf (Yusuf)
+13, Ar-Ra’d (the Thunder)
+14, Ibrahim (Ibrahim)
+15, Al-Hijr (the Rocky Tract)
+16, An-Nahl (the Bees)
+17, Al-Isra’ (the Night Journey)
+18, Al-Kahf (the Cave)
+19, Maryam (Maryam)
+20, Ta-Ha (Ta-Ha)
+21, Al-Anbiya’ (the Prophets)
+22, Al-Haj (the Pilgrimage)
+23, Al-Mu’minun (the Believers)
+24, An-Nur (the Light)
+25, Al-Furqan (the Criterion)
+26, Ash-Shu’ara’ (the Poets)
+27, An-Naml (the Ants)
+28, Al-Qasas (the Stories)
+29, Al-Ankabut (the Spider)
+30, Ar-Rum (the Romans)
+31, Luqman (Luqman)
+32, As-Sajdah (the Prostration)
+33, Al-Ahzab (the Combined Forces)
+34, Saba’ (the Sabeans)
+35, Al-Fatir (the Originator)
+36, Ya-Sin (Ya-Sin)
+37, As-Saffah (Those Ranges in Ranks)
+38, Sad (Sad)
+39, Az-Zumar (the Groups)
+40, Ghafar (the Forgiver)
+41, Fusilat (Distinguished)
+42, Ash-Shura (the Consultation)
+43, Az-Zukhruf (the Gold)
+44, Ad-Dukhan (the Smoke)
+45, Al-Jathiyah (the Kneeling)
+46, Al-Ahqaf (the Valley)
+47, Muhammad (Muhammad)
+48, Al-Fat’h (the Victory)
+49, Al-Hujurat (the Dwellings)
+50, Qaf (Qaf)
+51, Adz-Dzariyah (the Scatterers)
+52, At-Tur (the Mount)
+53, An-Najm (the Star)
+54, Al-Qamar (the Moon)
+55, Ar-Rahman (the Most Gracious)
+56, Al-Waqi’ah (the Event)
+57, Al-Hadid (the Iron)
+58, Al-Mujadilah (the Reasoning)
+59, Al-Hashr (the Gathering)
+60, Al-Mumtahanah (the Tested)
+61, As-Saf (the Row)
+62, Al-Jum’ah (Friday)
+63, Al-Munafiqun (the Hypocrites)
+64, At-Taghabun (the Loss & Gain)
+65, At-Talaq (the Divorce)
+66, At-Tahrim (the Prohibition)
+67, Al-Mulk – (the Kingdom)
+68, Al-Qalam (the Pen)
+69, Al-Haqqah (the Inevitable)
+70, Al-Ma’arij (the Elevated Passages)
+71, Nuh (Nuh)
+72, Al-Jinn (the Jinn)
+73, Al-Muzammil (the Wrapped)
+74, Al-Mudaththir (the Cloaked)
+75, Al-Qiyamah (the Resurrection)
+76, Al-Insan (the Human)
+77, Al-Mursalat (Those Sent Forth)
+78, An-Naba’ (the Great News)
+79, An-Nazi’at (Those Who Pull Out)
+80, ‘Abasa (He Frowned)
+81, At-Takwir (the Overthrowing)
+82, Al-Infitar (the Cleaving)
+83, Al-Mutaffifin (Those Who Deal in Fraud)
+84, Al-Inshiqaq (the Splitting Asunder)
+85, Al-Buruj (the Stars)
+86, At-Tariq (the Nightcomer)
+87, Al-A’la (the Most High)
+88, Al-Ghashiyah (the Overwhelming)
+89, Al-Fajr (the Dawn)
+90, Al-Balad (the City)
+91, Ash-Shams (the Sun)
+92, Al-Layl (the Night)
+93, Adh-Dhuha (the Forenoon)
+94, Al-Inshirah (the Opening Forth)
+95, At-Tin (the Fig)
+96, Al-‘Alaq (the Clot)
+97, Al-Qadar (the Night of Decree)
+98, Al-Bayinah (the Proof)
+99, Az-Zalzalah (the Earthquake)
+100, Al-‘Adiyah (the Runners)
+101, Al-Qari’ah (the Striking Hour)
+102, At-Takathur (the Piling Up)
+103, Al-‘Asr (the Time)
+104, Al-Humazah (the Slanderer)
+105, Al-Fil (the Elephant)
+106, Quraish (Quraish)
+107, Al-Ma’un (the Assistance)
+108, Al-Kauthar (the River of Abundance)
+109, Al-Kafirun (the Disbelievers)
+110, An-Nasr (the Help)
+111, Al-Masad (the Palm Fiber)
+112, Al-Ikhlas (the Sincerity)
+113, Al-Falaq (the Daybreak)
+114, An-Nas (Mankind)

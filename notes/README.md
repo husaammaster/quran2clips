@@ -50,5 +50,5 @@ audio level slowly but linearly turn quieter and quieter, so that you have to co
     - Then you can say to your assistant "Shuffle/Play the playlist 'Quiz Page 1 to 10'." to get one short clip after the other.
 
 
-
-
+# Downloads
+From mp3quran.net through the torrent links
