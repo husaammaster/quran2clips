@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 from typing import Dict
 
+from processflow import postprocess_clip
 from split_concat import get_sura_range
 
 
@@ -45,7 +46,7 @@ def save_clips(audio: AudioSegment, clip_length_ms: int, overlap_ms: int, output
             output_path = output_dir / filename
             ffmpeg.input(str(temp_path)).output(str(output_path), codec='aac').run(overwrite_output=True)
             os.remove(temp_path)
-            postprocess_file(output_path, metadata)
+            postprocess_clip(output_path, metadata)
         except Exception as e:
             logging.error(f"Error exporting clip {filename}: {e}")
 

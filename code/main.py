@@ -3,41 +3,88 @@
 import logging
 from pathlib import Path
 from typing import Dict
+import pandas as pd
 
+from speedster import create_median_length_tracks
 from file_io import save_clips
-from json_gen import create_folder_dfs, load_folder_dfs
+from json_gen import load_folder_dfs
 from split_concat import concatenate_audio_files
 
 
-def main(quran_data_folder: Path, desired_juz_length_minutes, clip_length_minutes, overlap_seconds, fade_seconds: float = 5.0, metadata: Dict[str, str] = None) -> None:
+def analyze_n_generate_medians(
+        quran_data_folder: Path) -> None:
     """
-    Main function to concatenate audio files and save clips with overlapping intervals.
+    A function to generate median length tracks for all reciters in the given folder.
 
     Args:
         quran_data_folder (Path): Directory where for each reciter a folder with the MP3 files is stored.
-        output_dir (Path): Directory where the output clips will be saved.
-        clip_length_minutes (int, optional): Length of each clip in minutes. Defaults to 5.
-        overlap_seconds (int, optional): Overlap between consecutive clips in seconds. Defaults to 5.
-        desired_length_minutes (int, optional): Desired total length of the combined audio in minutes. Defaults to 60.
-        fade_seconds (int, optional): Duration of the fade in and fade out effect in seconds. Defaults to 2.0.
-        metadata (Dict[str, str], optional): Metadata for the output files. Defaults to None.
 
+    Does:
+        - Loads/generates metadata dataframes for all reciters.
+        - Concatenates the dataframes of all reciters.
+        - Saves the concatenated dataframe and an analysis of track lenghts.
+        - Creates median length tracks for all reciters.
+        
     Returns:
         None
     """
 
+
+    print("\n"*2, " Fixing files and analyzing them ".center(80, "="), "\n"*2)
     rec_folders = sorted([folder for folder in quran_data_folder.iterdir() if folder.is_dir()])
     
 
     # create_folder_dfs(rec_folders)
-    sura_time_analysis_df = load_folder_dfs(rec_folders)
+    sura_stat_df, rec_sura_df = load_folder_dfs(quran_data_folder, rec_folders)
 
-    # create_median_length_tracks() # in own subfolder
-    # create_30min/juz versions # in own subfolder 
-    # clipper with overlap and fade in/out # in own subfolder
 
+    def get_min_max_sura(sura_num: int, rec_sura_df: pd.DataFrame):
+        """Get the min and max len reciter for the sura with number sura_num."""
+        print(F"\nGet min and max len reciter for the sura with number {sura_num}")
+        # Get the row with the min/maximum value in 'len' for a given trk_num
+        min_row = rec_sura_df[rec_sura_df['trk_num'] == sura_num].loc[rec_sura_df[rec_sura_df['trk_num'] == sura_num]['len'].idxmin()]
+        max_row = rec_sura_df[rec_sura_df['trk_num'] == sura_num].loc[rec_sura_df[rec_sura_df['trk_num'] == sura_num]['len'].idxmax()]
+
+        print(F" - min len for sura {sura_num}:")
+        print(min_row)
+        print(F" - max len for sura {sura_num}:")
+        print(max_row)
+
+        return min_row, max_row
+    
+    # get_min_max_sura(1, rec_sura_df)
+    # get_min_max_sura(2, rec_sura_df)
+    # get_min_max_sura(3, rec_sura_df)
+
+    create_median_length_tracks(rec_folders, sura_stat_df) # in own subfolder
+
+
+    print("\n"*2, " Done: Generating median files for all reciters ".center(80, "="), "\n"*2)
     return
 
+"""
+def speedup_medians_n_clip(
+        quran_data_folder: Path, 
+        desired_juz_length_minutes, 
+        clip_length_minutes, 
+        overlap_seconds, 
+        fade_seconds: float = 5.0, 
+        metadata: Dict[str, str] = None) -> None:
+    "
+    Args:
+        
+    Does:
+        - Creates 30 minute and Juz versions of the median length tracks.
+        - Clips the median length tracks with overlapping intervals and fade in/out.
+        - Saves the clips to the output
+        - Saves the metadata for the clips to the output
+
+    Returns:
+        None
+    "
+
+    # create_30min/juz versions # in own subfolder
+    # clipper with overlap and fade in/out # in own subfolder
 
     desired_total_length_minutes = 30 * desired_juz_length_minutes
     clip_length_ms = 1000 * 60 * clip_length_minutes 
@@ -52,25 +99,25 @@ def main(quran_data_folder: Path, desired_juz_length_minutes, clip_length_minute
     logging.info(f"Combined audio saved to {combined_audio_path}.")
 
     save_clips(combined_audio, clip_length_ms, overlap_ms, output_dir, sura_start_times, quran_data_folder, fade_seconds, metadata, speedup_factor)
-
+"""
 
 
 if __name__ == "__main__":
-    quran_data_path = Path('/Users/hm/Downloads/Quran_Recordings/')  # Directory where your MP3 files are located
-    # output_directory = input_directory / 'clips'  # Directory where the output clips will be saved
+    quran_data_path = Path('/Users/hm/Downloads/Quran Recordings/')
+    # Directory where your MP3 files are located
+    # output_directory = quran_data_path / 'clips'  # Directory where the output clips will be saved
     # output_directory.mkdir(parents=True, exist_ok=True)
-    """
-    metadata_example = {
-        "album": input_directory.stem,
-        "composer": input_directory.stem,
+
+    desired_juz_length_minutes = 45
+    metadata = {
+        "album": quran_data_path.stem,
+        "composer": F"{desired_juz_length_minutes} minutes Juz",
         "genre": "Quran",
         "title": "Unnamed Clip"
     }
-    """
-    main(
-        quran_data_path, 
-        clip_length_minutes=1, 
-        desired_juz_length_minutes=45, 
-        overlap_seconds=12.5, 
-        fade_seconds=10.0, 
-        metadata=None)
+
+    analyze_n_generate_medians(
+        quran_data_path,
+        )
+    
+

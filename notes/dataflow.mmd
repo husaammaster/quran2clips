@@ -1,0 +1,55 @@
+flowchart TD
+
+    folder_jsons[(folder_jsons)]
+    audio_orig[(audio_orig)]
+    audio_fixed[(audio_fixed)]
+    audio_median[(audio_median)]
+
+    StartRun(((Run)))
+    ClipConf[ClipConf]
+    subgraph main
+        rec_folders
+        subgraph load_folder_dfs
+            for_loop
+                create_folder_df
+                load_and_concatenate
+            remove_duplicates
+            df.groupby
+            return_dfs
+        end
+        sura_time_analysis_df
+        subgraph create_median_length_tracks
+            subgraph for_recorder
+                subgraph for_file
+                    direction TB
+                    speed_change-->speedup_audio_ffmpeg
+                end
+            end
+        end
+    end
+
+
+    StartRun--quran_data_folder-->rec_folders
+
+        rec_folders-->for_loop
+        for_loop--rec_folder-->load_and_concatenate
+        for_loop--rec_folder-->create_folder_df-->folder_jsons
+        audio_orig-->create_folder_df
+        create_folder_df-->audio_fixed
+        folder_jsons-->load_and_concatenate
+
+        load_and_concatenate--combined_df-->remove_duplicates
+        remove_duplicates-->df.groupby
+        df.groupby--"df with min/mean/max"-->return_dfs[return]
+    return_dfs-->sura_time_analysis_df
+    audio_fixed-->speed_change
+    speedup_audio_ffmpeg-->audio_median
+
+
+
+    StartRun--quran_data_folder-->create_median_length_tracks
+    sura_time_analysis_df-->speed_change
+
+
+
+   
