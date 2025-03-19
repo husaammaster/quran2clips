@@ -89,6 +89,10 @@ def create_folder_df(rec_folder: Path):
         if sura_filep.name.find("_") == -1: # if the file does not contain "_" which signifies any suffix, so it is the original file
             tmp_fixed_path = sura_filep.with_suffix('.fixedtmp.aac')
             fixed_sura_filep = fixed_folder / (sura_filep.stem + "_fixed" + ".aac")
+            
+            if tmp_fixed_path.exists(): # Remove tmp_fixed_path if it exists
+                os.remove(tmp_fixed_path)
+    
             if not fixed_sura_filep.exists():
                 print(f"\n - Fixing {sura_filep.name} from {sura_filep.parent.stem}.")
                 subprocess.run(['ffmpeg', '-i', str(sura_filep), '-c:a', 'aac', '-b:a', '256k', str(tmp_fixed_path)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)

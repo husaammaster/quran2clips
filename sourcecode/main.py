@@ -63,7 +63,7 @@ def analyze_n_generate_medians(
     return
 
 """
-def speedup_medians_n_clip(
+def speedup_medians_to_spedfull(
         quran_data_folder: Path, 
         desired_juz_length_minutes, 
         clip_length_minutes, 
@@ -74,31 +74,57 @@ def speedup_medians_n_clip(
     Args:
         
     Does:
-        - Creates 30 minute and Juz versions of the median length tracks.
-        - Clips the median length tracks with overlapping intervals and fade in/out.
-        - Saves the clips to the output
-        - Saves the metadata for the clips to the output
+        - creates subfolder for the reader for the specified min per juz
+        - get the sum of median lengths for all suras
+        - the desired total length is 30 times desired_juz_length_minutes
+        - get the speedup factor so that the sum of median lengths is equal to the desired total length
+        - for each sura:
+            - speed up the median length track
+            - save it to the new subfolder with the specified min per juz (full len tracks) as mp3 instead of aac
+                - filename being sura number plus "_spedfull_{desired_juz_length_minutes}min.mp3"
+            - save the metadata for the new track with 
+                - title being sura str name with "F" suffix
+                - genre being quran 
+                - artist being the speed
+                - album being the reciter plus suffix "F"
 
     Returns:
         None
     "
 
-    # create_30min/juz versions # in own subfolder
-    # clipper with overlap and fade in/out # in own subfolder
+    
+
+def spedfull_to_clips(
+        quran_data_folder: Path, 
+        desired_juz_length_minutes, 
+        clip_length_minutes, 
+        overlap_seconds, 
+        fade_seconds: float = 5.0, 
+        metadata: Dict[str, str] = None) -> None:
+    "
+    Does:
+        - creates clips subfolder for the specified min per juz
+        - for each sura:
+            - calculates how many percents of the full length the clip length is
+            - calculates how many percents of the full length the overlap length is
+            - Clips the spedfulls with overlapping intervals by using percentages
+            - add fade in/out
+            - Saves the clips to the clip folder
+                - filename being sura number with infix "C" and "Xp - Yp" suffix
+            - save the metadata for the new track with
+                - title being sura str name with infix "C" and "Xp - Yp" suffix
+                - genre being quran-clip 
+                - artist being the speed
+                - album being the reciter plus suffix "C"
+    "
+    
 
     desired_total_length_minutes = 30 * desired_juz_length_minutes
     clip_length_ms = 1000 * 60 * clip_length_minutes 
     overlap_ms = overlap_seconds * 1000
 
-    files = sorted([file for file in quran_data_folder.iterdir() if file.suffix == '.mp3'])
-    logging.info(f"Found {len(files)} MP3 files in {quran_data_folder}.")
 
-    combined_audio, sura_start_times, speedup_factor = concatenate_audio_files(files, desired_total_length_minutes, output_dir)
 
-    combined_audio_path = output_dir / "combined_audio.mp3"
-    logging.info(f"Combined audio saved to {combined_audio_path}.")
-
-    save_clips(combined_audio, clip_length_ms, overlap_ms, output_dir, sura_start_times, quran_data_folder, fade_seconds, metadata, speedup_factor)
 """
 
 

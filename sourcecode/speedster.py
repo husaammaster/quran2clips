@@ -39,6 +39,23 @@ def create_median_length_tracks(rec_folders: List[Path], sura_time_analysis_df: 
                         output_filep=sura_median_filep, 
                         speed_change=speed_change
                         )
+                else: # medial already exists but is maybe a different old median
+                    old_median_sura_len = float(mediainfo(sura_median_filep)['duration'])/60.0
+                    sura_median_len = sura_time_analysis_df.loc[int(curr_sura_num), "median"]
+
+                    if not math.isclose(old_median_sura_len, sura_median_len, abs_tol=1e-5):
+                        curr_sura_info = mediainfo(fixed_filep)
+                        curr_sura_len = float(curr_sura_info['duration'])/60.0
+                        sura_median_len = sura_time_analysis_df.loc[int(curr_sura_num), "median"]
+
+                        # sura_len>median -> speed_change>1 -> speed up
+                        speed_change = curr_sura_len/sura_median_len
+                        speedup_audio_ffmpeg(
+                            input_filep=fixed_filep, 
+                            output_filep=sura_median_filep, 
+                            speed_change=speed_change
+                            )
+
 
 
 def speedup_audio_ffmpeg(input_filep: Path, output_filep: Path, speed_change: float) -> None:
@@ -60,7 +77,7 @@ def speedup_audio_ffmpeg(input_filep: Path, output_filep: Path, speed_change: fl
                 'ffmpeg', '-y', '-i', str(input_filep), '-filter:a', f"atempo={speed_change}", str(output_filep)
             ], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         else:
-            print(F"\n - Copying {input_filep.parent.stem}/{input_filep.name} to {output_filep.parent.stem}/{output_filep.name}, because speedup factor is 1.0.")
+            # print(F"\n - Copying {input_filep.parent.stem}/{input_filep.name} to {output_filep.parent.stem}/{output_filep.name}, because speedup factor is 1.0.")
             shutil.copy(input_filep, output_filep)
     except subprocess.CalledProcessError as e:
         logging.error(f"Error speeding up {input_filep.parent.stem}/{input_filep.stem} with ffmpeg:\n{e}")
