@@ -1,6 +1,7 @@
 import os
 import shutil
 import subprocess
+import csv
 from typing import List
 from tqdm import tqdm
 import pandas as pd
@@ -11,6 +12,25 @@ from pydub.utils import mediainfo
 print("json_gen.py")
 
 ORIG_JSON_NAME = "original_mp3_metadata.json"
+
+def load_quran_numbers(csv_path):
+    """Reads quran_numbers.csv and returns a dictionary mapping numbers to Surah names."""
+    quran_dict = {}
+    
+    with open(csv_path, mode='r', encoding='utf-8') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            if len(row) >= 2:  # Ensure at least two elements (number, name)
+                number = int(row[0].strip())  # Convert number to integer
+                sura_name = row[1].strip()  # Clean up name
+                quran_dict[number] = sura_name
+
+    return quran_dict
+
+# read the json file for sura names
+script_dir = Path(__file__).parent  # Get the directory of the current script
+csv_path = script_dir / "quran_numbers.csv"
+NUM_TO_SURA = load_quran_numbers(csv_path)
 
 def load_folder_dfs(quran_data_folder: Path, rec_folders: List[Path]):
     """
@@ -37,15 +57,13 @@ def load_folder_dfs(quran_data_folder: Path, rec_folders: List[Path]):
 
         combined_df = pd.concat(fixed_dfs, ignore_index=True)
         print(F"\nConcatenated the dataframes for all reciters in the quran data folder.")
-        # print(combined_df)
         return combined_df
 
     # Function to remove duplicates
     def remove_duplicates(df: pd.DataFrame, subset_columns: List[str]):
-        """Removes all dulpicate lines according to the given subset of columns."""
+        """Removes all duplicate lines according to the given subset of columns."""
         df_dedup = df.drop_duplicates(subset=subset_columns)
         print(f"Shape after removing duplicates: {df_dedup.shape}")
-        # print(df_dedup)
         return df_dedup
 
 
@@ -59,19 +77,38 @@ def load_folder_dfs(quran_data_folder: Path, rec_folders: List[Path]):
     subset_columns = ['sura', 'artist', 'file']
     rec_sura_df = remove_duplicates(combined_df, subset_columns)
     print(F"\nShape after removing duplicates: {rec_sura_df.shape}")
+
     rec_sura_df.to_json(quran_data_folder / "rec_sura_df.json", orient='records', lines=True)
 
-    print(F"\nGrouping all reciters and calculating min, mean, median, max, std for all suras:")
-    sura_stat_df = rec_sura_df.groupby('trk_num')['len'].agg(['min', 'mean', 'median', 'max', 'std'])
-    mean_sum_minutes = sura_stat_df['mean'].sum()
-    median_sum_minutes = sura_stat_df['median'].sum()
-    print(F"Sum of all mean sura lengths: {mean_sum_minutes / 60.0:.1f} hours. \n - {mean_sum_minutes/30:.1f} min/Juz\n - {mean_sum_minutes/604:.1f} min/page\n - {604/mean_sum_minutes:.1f} pages/min")
-    print(F"Sum of all median sura lengths: {median_sum_minutes / 60.0:.1f} hours. \n - {median_sum_minutes/30:.1f} min/Juz\n - {median_sum_minutes/604:.1f} min/page\n - {604/median_sum_minutes:.1f} pages/min")
-    print("")
-    sura_stat_df.to_json(quran_data_folder / "sura_stat_df.json", orient='records', lines=True)
-    print(sura_stat_df)
+    # Filter to only keep suras where all reciters have an entry
+    sura_counts = rec_sura_df['trk_num'].value_counts()
+    common_suras = sura_counts[sura_counts == len(rec_folders)].index
+    rec_sura_df = rec_sura_df[rec_sura_df['trk_num'].isin(common_suras)]
+    print(F"\nFiltered dataset to only include suras present for all reciters. Remaining suras: {len(common_suras)}")
+    print(F" - those suras are: {common_suras}")
+
+    print(F"\nCalculating sum of sura lengths per reciter for common suras.")
+    reciter_sums = rec_sura_df.groupby('artist')['len'].sum().to_dict()
+    print(F"Sum of sura lengths per reciter for the common suras: {reciter_sums}")
+    
+    rec_sura_df.to_json(quran_data_folder / "filtered_rec_sura_df.json", orient='records', lines=True)
+    with open(quran_data_folder / "reciter_sura_sums.json", "w") as f:
+        json.dump(reciter_sums, f, indent=2)
+
+    sura_stat_df = "not calculated because of logical issues"
+    print(common_suras)
+    # Out overall medial reciter is the one with the median sum of sura lengths (measured on common suras)
+    # Each reciter is a factor of that median reciter that factor is the speedup factor for all suras of that reciter
+    #     there is no telling how long the complete quran would take for the median reciter, because the recordings are not complete
+    # Each sura is then speeded up by that factor
+    #     there is no telling how long each resultigng complete quran will take.
+
+    # after we spepedup all suras to be of median speedfactor, we can calculate the average length of each sura
+    # this will result in the average length of the quran for the median reciter
+    # we can then calculate the speedup factor for the median reciter to get to the desired minutes per juz
+    # this factor gets applied to all spedup factors of each reciter
         
-    return sura_stat_df, rec_sura_df
+    return reciter_sums
 
 def create_folder_df(rec_folder: Path):
     """
@@ -95,11 +132,10 @@ def create_folder_df(rec_folder: Path):
     
             if not fixed_sura_filep.exists():
                 print(f"\n - Fixing {sura_filep.name} from {sura_filep.parent.stem}.")
-                subprocess.run(['ffmpeg', '-i', str(sura_filep), '-c:a', 'aac', '-b:a', '256k', str(tmp_fixed_path)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                subprocess.run(['ffmpeg', '-i', str(sura_filep), '-ar', '44100', '-c:a', 'aac', '-b:a', '128k', str(tmp_fixed_path)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 shutil.move(tmp_fixed_path, fixed_sura_filep)
             else:
                 pass
-                #print(f"\n - {fixed_sura_filep.name} already exists.")
             return fixed_sura_filep
 
         else:
@@ -118,23 +154,23 @@ def create_folder_df(rec_folder: Path):
     for sura_filep in tqdm(sura_fileps, desc="Reading metadata and fixing mp3s", unit="sura"):
         if sura_filep.is_file() and sura_filep.suffix == ".mp3":
             track_info = mediainfo(sura_filep)
-            #print(json.dumps(track_info, indent=2))
-            #track_length = float(track_info['duration'])
             track_length = get_track_length(sura_filep)
             track_number = sura_filep.stem[:3]
             parent_folder = rec_folder.name
+            sura_ID = sura_filep.stem[:3]
 
-            tracks_metadata.append({
-                'artist': track_info['TAG']['artist'],
-                'sura': track_info['TAG']['title'],
+            track_md = {
+                'artist': rec_folder.name,
+                'sura': NUM_TO_SURA[int(sura_ID)],
                 'len': track_length,
                 'file': str(sura_filep.relative_to(rec_folder)),
                 'trk_num': track_number,
                 'sample_rate': track_info['sample_rate'],
                 'bit_rate': track_info['bit_rate'],
-                'genre': track_info['TAG']['genre'],
+                'genre': "Quran",
                 'parent_folder': parent_folder,
-            })
+            }
+            tracks_metadata.append(track_md)
 
     rec_metadata_df = pd.DataFrame(tracks_metadata)
     print(rec_metadata_df)

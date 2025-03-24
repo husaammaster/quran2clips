@@ -4,6 +4,7 @@ import logging
 from pathlib import Path
 from typing import Dict
 import pandas as pd
+import statistics
 
 from speedster import create_median_length_tracks
 from file_io import save_clips
@@ -35,29 +36,18 @@ def analyze_n_generate_medians(
     
 
     # create_folder_dfs(rec_folders)
-    sura_stat_df, rec_sura_df = load_folder_dfs(quran_data_folder, rec_folders)
+    reciter_sums_dict = load_folder_dfs(quran_data_folder, rec_folders)
 
-
-    def get_min_max_sura(sura_num: int, rec_sura_df: pd.DataFrame):
-        """Get the min and max len reciter for the sura with number sura_num."""
-        print(F"\nGet min and max len reciter for the sura with number {sura_num}")
-        # Get the row with the min/maximum value in 'len' for a given trk_num
-        min_row = rec_sura_df[rec_sura_df['trk_num'] == sura_num].loc[rec_sura_df[rec_sura_df['trk_num'] == sura_num]['len'].idxmin()]
-        max_row = rec_sura_df[rec_sura_df['trk_num'] == sura_num].loc[rec_sura_df[rec_sura_df['trk_num'] == sura_num]['len'].idxmax()]
-
-        print(F" - min len for sura {sura_num}:")
-        print(min_row)
-        print(F" - max len for sura {sura_num}:")
-        print(max_row)
-
-        return min_row, max_row
+    median_reciter_sum = reciter_sums_dict.values()
+    median_reciter = statistics.median(median_reciter_sum)
+    print("")
+    print(F"Median of all reciters: {median_reciter}")
+    rec_med_speedup = {}
+    for reciter, reciter_sum in reciter_sums_dict.items():
+        rec_med_speedup[reciter] = reciter_sum/median_reciter
+        print(F"Speedup factor for {reciter} to reach median: {rec_med_speedup[reciter]}")
     
-    # get_min_max_sura(1, rec_sura_df)
-    # get_min_max_sura(2, rec_sura_df)
-    # get_min_max_sura(3, rec_sura_df)
-
-    create_median_length_tracks(rec_folders, sura_stat_df) # in own subfolder
-
+    create_median_length_tracks(rec_folders, rec_med_speedup) # in own subfolder
 
     print("\n"*2, " Done: Generating median files for all reciters ".center(80, "="), "\n"*2)
     return
