@@ -1,3 +1,6 @@
 quran_venv
 __pycache__
 .DS_Store
+.venv
+.venv_P310
+output/

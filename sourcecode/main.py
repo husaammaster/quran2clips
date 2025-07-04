@@ -65,8 +65,8 @@ def speedup_medians_to_spedfull(
         
     Does:
         - creates subfolder for the reader for the specified min per juz
-        - get the sum of median lengths for all suras
-        - the desired total length is 30 times desired_juz_length_minutes
+        - MISTAKE!!get the sum of median lengths for all suras
+        - MISTAKE!!the desired total length is 30 times desired_juz_length_minutes
         - get the speedup factor so that the sum of median lengths is equal to the desired total length
         - for each sura:
             - speed up the median length track

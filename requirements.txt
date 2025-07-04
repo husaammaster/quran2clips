@@ -56,3 +56,4 @@ urllib3==2.0.3
 wcwidth==0.2.13
 webrtcvad==2.0.10
 youtube-dl==2021.12.17
+gtts==2.5.4
