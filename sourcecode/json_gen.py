@@ -8,24 +8,14 @@ import pandas as pd
 import json
 from pathlib import Path
 from pydub.utils import mediainfo
+import gc
+from mutagen.mp3 import MP3
+from mutagen.easyid3 import EasyID3
+from utils import load_quran_numbers, set_mp3_title
 
 print("json_gen.py")
 
 ORIG_JSON_NAME = "original_mp3_metadata.json"
-
-def load_quran_numbers(csv_path):
-    """Reads quran_numbers.csv and returns a dictionary mapping numbers to Surah names."""
-    quran_dict = {}
-    
-    with open(csv_path, mode='r', encoding='utf-8') as file:
-        reader = csv.reader(file)
-        for row in reader:
-            if len(row) >= 2:  # Ensure at least two elements (number, name)
-                number = int(row[0].strip())  # Convert number to integer
-                sura_name = row[1].strip()  # Clean up name
-                quran_dict[number] = sura_name
-
-    return quran_dict
 
 # read the json file for sura names
 script_dir = Path(__file__).parent  # Get the directory of the current script
@@ -57,6 +47,9 @@ def load_folder_dfs(quran_data_folder: Path, rec_folders: List[Path]):
 
         combined_df = pd.concat(fixed_dfs, ignore_index=True)
         print(F"\nConcatenated the dataframes for all reciters in the quran data folder.")
+        # Memory optimization
+        del fixed_dfs
+        gc.collect()
         return combined_df
 
     # Function to remove duplicates
@@ -95,6 +88,10 @@ def load_folder_dfs(quran_data_folder: Path, rec_folders: List[Path]):
     with open(quran_data_folder / "reciter_sura_sums.json", "w") as f:
         json.dump(reciter_sums, f, indent=2)
 
+    # Memory optimization - only after all variables are used
+    del combined_df, rec_sura_df, sura_counts
+    gc.collect()
+    
     sura_stat_df = "not calculated because of logical issues"
     print(common_suras)
     # Out overall medial reciter is the one with the median sum of sura lengths (measured on common suras)
@@ -124,16 +121,21 @@ def create_folder_df(rec_folder: Path):
 
         fixed_folder = sura_filep.parent / "fixed"
         if sura_filep.name.find("_") == -1: # if the file does not contain "_" which signifies any suffix, so it is the original file
-            tmp_fixed_path = sura_filep.with_suffix('.fixedtmp.aac')
-            fixed_sura_filep = fixed_folder / (sura_filep.stem + "_fixed" + ".aac")
+            tmp_fixed_path = sura_filep.with_suffix('.fixedtmp.mp3') 
+            fixed_sura_filep = fixed_folder / (sura_filep.stem + "_fixed" + ".mp3")
             
             if tmp_fixed_path.exists(): # Remove tmp_fixed_path if it exists
                 os.remove(tmp_fixed_path)
     
             if not fixed_sura_filep.exists():
                 print(f"\n - Fixing {sura_filep.name} from {sura_filep.parent.stem}.")
-                subprocess.run(['ffmpeg', '-i', str(sura_filep), '-ar', '44100', '-c:a', 'aac', '-b:a', '128k', str(tmp_fixed_path)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                subprocess.run(['ffmpeg', '-i', str(sura_filep), '-ar', '44100', '-c:a', 'mp3', '-b:a', '128k', str(tmp_fixed_path)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 shutil.move(tmp_fixed_path, fixed_sura_filep)
+                
+                # Set the track title using sura name from CSV
+                sura_id = int(sura_filep.stem[:3])
+                sura_name = NUM_TO_SURA.get(sura_id, f"Sura {sura_id:03d}")
+                set_mp3_title(fixed_sura_filep, sura_name)
             else:
                 pass
             return fixed_sura_filep
@@ -179,3 +181,7 @@ def create_folder_df(rec_folder: Path):
     json_output_path = rec_folder / ORIG_JSON_NAME
     rec_metadata_df.to_json(json_output_path, orient='records', lines=True)
     print(F" - dataframe for {rec_folder.name} generated and {ORIG_JSON_NAME} stored")
+    
+    # Memory optimization
+    del tracks_metadata, rec_metadata_df
+    gc.collect()

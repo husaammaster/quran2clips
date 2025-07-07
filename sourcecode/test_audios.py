@@ -28,12 +28,12 @@ def generate_tts_numbers(dest: Path, max_int: int, w_subdirectories: bool = Fals
     for i in range(1, max_int + 1):
         p = dest
         if w_subdirectories:
-            p = dest / str(i // 10 * 10)
+            p = dest / f"{i // 10 * 10:03d}"
             p.mkdir(parents=True, exist_ok=True)
-        out_file = p / f"{i}.mp3"
+        out_file = p / f"{i:03d}.mp3"
         if out_file.exists():
             continue  # Skip if file already exists
-        tts = gTTS(text=str(i), lang='en')
+        tts = gTTS(text=str(i), lang='de')
         tts.save(out_file)
         try:
             # Ensure file has an ID3 tag
@@ -42,7 +42,7 @@ def generate_tts_numbers(dest: Path, max_int: int, w_subdirectories: bool = Fals
                 mp3.add_tags()
                 mp3.save()
             audio = EasyID3(str(out_file))
-            audio['title'] = f"Number {i}"
+            audio['title'] = f"Number {i:03d}"
             if w_subdirectories:
                 audio['album'] = "Album " + str(p.name)
             audio.save()
@@ -53,6 +53,6 @@ def generate_tts_numbers(dest: Path, max_int: int, w_subdirectories: bool = Fals
 if __name__ == "__main__":
     OUTPUT_DIR = Path("./output")
     MAX_NUM = 100
-    W_SUBDIR = True
+    W_SUBDIR = False
 
     generate_tts_numbers(OUTPUT_DIR, MAX_NUM, W_SUBDIR)
