@@ -1,19 +1,12 @@
-
-
-import logging
 from pathlib import Path
-from typing import Dict
-import pandas as pd
 import statistics
 
 from speedster import create_median_length_tracks
-from file_io import save_clips
 from json_gen import load_folder_dfs
-from split_concat import concatenate_audio_files
 
 
 def analyze_n_generate_medians(
-        quran_data_folder: Path) -> None:
+        quran_data_folder: Path):
     """
     A function to generate median length tracks for all reciters in the given folder.
 
@@ -25,9 +18,6 @@ def analyze_n_generate_medians(
         - Concatenates the dataframes of all reciters.
         - Saves the concatenated dataframe and an analysis of track lenghts.
         - Creates median length tracks for all reciters.
-        
-    Returns:
-        None
     """
 
 
@@ -50,7 +40,9 @@ def analyze_n_generate_medians(
     create_median_length_tracks(rec_folders, rec_med_speedup) # in own subfolder
 
     print("\n"*2, " Done: Generating median files for all reciters ".center(80, "="), "\n"*2)
-    return
+    
+    # Memory optimization
+    return rec_folders, reciter_sums_dict, median_reciter_sum, rec_med_speedup
 
 """
 def speedup_medians_to_spedfull(
@@ -119,7 +111,7 @@ def spedfull_to_clips(
 
 
 if __name__ == "__main__":
-    quran_data_path = Path('/Users/hm/Downloads/Quran Recordings/')
+    quran_data_path = Path('/Users/hm/Documents/Quran_Recordings/')
     # Directory where your MP3 files are located
     # output_directory = quran_data_path / 'clips'  # Directory where the output clips will be saved
     # output_directory.mkdir(parents=True, exist_ok=True)
@@ -135,5 +127,8 @@ if __name__ == "__main__":
     analyze_n_generate_medians(
         quran_data_path,
         )
+
+    # now generate the clips for each file inside the reciter/median/reciter folder
+
     
 

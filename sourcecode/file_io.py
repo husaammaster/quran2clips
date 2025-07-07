@@ -1,5 +1,3 @@
-
-
 import ffmpeg
 from pydub import AudioSegment
 import logging
@@ -7,7 +5,7 @@ import os
 from pathlib import Path
 from typing import Dict
 
-from processflow import postprocess_clip
+from processflow import postprocess_clip, postprocess_file
 from split_concat import get_sura_range
 
 
@@ -35,18 +33,18 @@ def save_clips(audio: AudioSegment, clip_length_ms: int, overlap_ms: int, output
     while start < len(audio):
         end = start + clip_length_ms
         clip = audio[start:end]
-        clip = postprocess_clip(clip, fade_duration)
+        clip = postprocess_clip(clip, fade_duration / 1000.0)
         sura_range = get_sura_range(start, end, sura_start_times, input_dir, speedup_factor)
         sura_range_str = "_".join(sura_range) if len(sura_range) > 1 else sura_range[0]
-        filename = f"sura_{sura_range_str}_c{clip_num}.m4a"
+        filename = f"sura_{sura_range_str}_c{clip_num}.mp3"
         temp_path = output_dir / f"temp_{filename}"
 
         try:
             clip.export(temp_path, format="mp3")
             output_path = output_dir / filename
-            ffmpeg.input(str(temp_path)).output(str(output_path), codec='aac').run(overwrite_output=True)
+            ffmpeg.input(str(temp_path)).output(str(output_path), codec='mp3', audio_bitrate='128k').run(overwrite_output=True)
             os.remove(temp_path)
-            postprocess_clip(output_path, metadata)
+            postprocess_file(output_path, metadata)
         except Exception as e:
             logging.error(f"Error exporting clip {filename}: {e}")
 
