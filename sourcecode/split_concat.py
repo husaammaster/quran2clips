@@ -3,12 +3,12 @@ from pathlib import Path
 from typing import List, Dict, Tuple
 import logging
 
-from speedster import speedup_audio_ffmpeg
 from audio import preprocess_audio_files
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def postprocess_combined_audio(combined_audio: AudioSegment, combined_path: Path, sura_start_times: Dict[str, int], desired_length_minutes: int) -> Tuple[AudioSegment, Dict[str, int]]:
+    from speedster import speedup_audio_ffmpeg  # moved import here to break circular dependency
     """
     Postprocess the combined audio file and sura_start_times after concatenation.
     
@@ -76,7 +76,7 @@ def concatenate_audio_files(file_list: List[Path], desired_length_minutes: int, 
     combined, sura_start_times, speedup_factor = postprocess_combined_audio(combined, ouput_path, sura_start_times, desired_length_minutes=desired_length_minutes)
     return combined, sura_start_times, speedup_factor
 
-def get_sura_length(sura_number: str, input_dir: Path, speedup_factor:float) -> int:
+def get_sura_length_ms(sura_number: str, input_dir: Path, speedup_factor:float) -> int:
     """
     Gets the length of a sura audio file in milliseconds.
     
@@ -87,7 +87,7 @@ def get_sura_length(sura_number: str, input_dir: Path, speedup_factor:float) -> 
     Returns:
         int: Length of the sura audio file in milliseconds.
     """
-    sura_file = input_dir / f"{sura_number}.mp3"
+    sura_file = input_dir / f"{sura_number:03d}_median.mp3"
     try:
         sura_audio = AudioSegment.from_mp3(sura_file)
         return len(sura_audio) / speedup_factor
@@ -95,7 +95,7 @@ def get_sura_length(sura_number: str, input_dir: Path, speedup_factor:float) -> 
         logging.error(f"Error loading {sura_file}: {e}")
         return 0
 
-def get_sura_range(start: int, end: int, sura_start_times: Dict[str, int], input_dir: Path, speedup_factor) -> List[str]:
+def get_sura_range(start_sec: int, end_sec: int, sura_start_times: Dict[str, int], input_dir: Path, speedup_factor) -> List[str]:
     """
     Determines the range of suras that overlap with a given time range.
     
@@ -110,10 +110,10 @@ def get_sura_range(start: int, end: int, sura_start_times: Dict[str, int], input
     """
     suras = []
     for sura, start_time in sura_start_times.items():
-        sura_length = get_sura_length(sura, input_dir, speedup_factor)
-        sura_end_time = start_time + sura_length
+        sura_length_sec = get_sura_length_ms(sura, input_dir, speedup_factor)/1000
+        sura_end_time = start_time + sura_length_sec
         
-        if start_time < end and sura_end_time > start:
-            suras.append(sura)
+        if start_time < end_sec and sura_end_time > start_sec:
+            suras.append(F"{sura:03d}")
     
     return suras

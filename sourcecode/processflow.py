@@ -1,6 +1,8 @@
 from pathlib import Path
 from typing import Dict
 from pydub import AudioSegment
+from mutagen.mp3 import MP3
+from mutagen.easyid3 import EasyID3
 
 
 def postprocess_clip(clip: AudioSegment, fade_seconds: float) -> AudioSegment:
@@ -30,8 +32,13 @@ def postprocess_file(output_path: Path, metadata: Dict[str, str]) -> None:
     Returns:
         None
     """
-    audio = ffmpeg.input(str(output_path))
-    metadata_params = []
-    for key, value in metadata.items():
-        metadata_params.extend(['-metadata', f'{key}={value}'])
-    ffmpeg.output(audio, str(output_path), **{k: v for i, (k, v) in enumerate(zip(metadata_params[0::2], metadata_params[1::2]))}).run(overwrite_output=True)
+    if metadata is not None:
+        # Ensure file has an ID3 tag
+        mp3 = MP3(str(output_path))
+        if mp3.tags is None:
+            mp3.add_tags()
+            mp3.save()
+        audio = EasyID3(str(output_path))
+        for key, value in metadata.items():
+            audio[key] = value
+        audio.save()

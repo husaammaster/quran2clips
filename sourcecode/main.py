@@ -3,6 +3,7 @@ import statistics
 
 from speedster import create_median_length_tracks
 from json_gen import load_folder_dfs
+from utils import split_all_median_files_to_clips
 
 
 def analyze_n_generate_medians(
@@ -116,6 +117,17 @@ if __name__ == "__main__":
     # output_directory = quran_data_path / 'clips'  # Directory where the output clips will be saved
     # output_directory.mkdir(parents=True, exist_ok=True)
 
+
+    GENERATE_MEDIANS = False
+    if GENERATE_MEDIANS:
+        analyze_n_generate_medians(
+            quran_data_path,
+            )
+
+
+    CLIP_LENGTH_MINUTES = 10
+    OVERLAP_SECONDS = (CLIP_LENGTH_MINUTES*60)/2.0
+    FADE_SECONDS = 5.0
     desired_juz_length_minutes = 45
     metadata = {
         "album": quran_data_path.stem,
@@ -124,11 +136,17 @@ if __name__ == "__main__":
         "title": "Unnamed Clip"
     }
 
-    analyze_n_generate_medians(
-        quran_data_path,
-        )
+    GENERATE_CLIPS = True
+    if GENERATE_CLIPS:
+        # now generate the clips for each file inside the reciter/median/reciter folder
+        split_all_median_files_to_clips(
+            quran_data_folder=quran_data_path,
+            clip_length_ms=CLIP_LENGTH_MINUTES*60*1000,
+            overlap_ms=OVERLAP_SECONDS*1000,
+            fade_duration=FADE_SECONDS*1000,
+            metadata=None,
+            )
 
-    # now generate the clips for each file inside the reciter/median/reciter folder
 
     
 
