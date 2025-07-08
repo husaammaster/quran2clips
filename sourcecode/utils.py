@@ -3,7 +3,6 @@ from pathlib import Path
 from mutagen.mp3 import MP3
 from mutagen.easyid3 import EasyID3
 from pydub import AudioSegment
-from file_io import save_clips_no_concat
 
 def load_quran_numbers(csv_path):
     """Reads quran_numbers.csv and returns a dictionary mapping numbers to Surah names."""
@@ -39,7 +38,9 @@ def split_all_median_files_to_clips(
     clip_length_ms: int,
     overlap_ms: int,
     fade_duration: int,
-    metadata: dict
+    speedup_factor: float,
+    metadata: dict,
+    clip_folder_prefix: str,
 ):
     """
     Iterates through all reciter/median folders and splits each median file into overlapping clips.
@@ -52,27 +53,29 @@ def split_all_median_files_to_clips(
         fade_duration (int): Fade in/out duration in milliseconds.
         metadata (dict): Metadata to apply to each clip.
     """
-    for reciter_folder in quran_data_folder.iterdir():
+    from file_io import save_clips_no_concat
+    for reciter_folder in sorted(quran_data_folder.iterdir()):
+
+        reciter_name = reciter_folder.name
         if not reciter_folder.is_dir():
             continue
-        median_folder = reciter_folder / "median"
+        median_folder = reciter_folder / ("median " + reciter_name)
         if not median_folder.exists():
             continue
-        output_dir = reciter_folder / "clips"
+        output_dir = reciter_folder / (clip_folder_prefix + "clips " + f"_SPD{speedup_factor:.2f}x".replace(".", "-") + "_" + reciter_name)
         output_dir.mkdir(exist_ok=True)
         for median_file in sorted(median_folder.glob("*.mp3")):
             audio = AudioSegment.from_mp3(median_file)
             sura_num=int(median_file.stem.split("_")[0])
-            sura_start_times = {sura_num: 0}
             save_clips_no_concat(
                 audio=audio,
+                reciter_name=reciter_name,
                 sura_num=sura_num,
                 clip_length_ms=clip_length_ms,
                 overlap_ms=overlap_ms,
                 output_dir=output_dir,
-                sura_start_times=sura_start_times,
-                input_dir=median_folder,
                 fade_ms=fade_duration,
                 metadata=metadata,
-                speedup_factor=1.0
+                speedup_factor=1.0,
+                clip_folder_prefix=clip_folder_prefix,
             ) 

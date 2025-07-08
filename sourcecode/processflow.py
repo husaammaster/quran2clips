@@ -17,8 +17,35 @@ def postprocess_clip(clip: AudioSegment, fade_seconds: float) -> AudioSegment:
         AudioSegment: The postprocessed audio clip with fade in and fade out effects.
     """
     fade_milliseconds = int(fade_seconds*1000)
-    clip = clip.fade_in(fade_milliseconds).fade_out(fade_milliseconds)
-    return clip
+
+    clip_length_sec = len(clip)/1000.0
+    clip_length_ms = int(clip_length_sec*1000)
+
+    if clip_length_sec < fade_seconds*2:
+        # for short clips
+        if clip_length_sec < fade_seconds:
+            return clip.fade_in(int(clip_length_ms))
+        else:
+           return clip.fade_in(fade_milliseconds)
+
+    else:
+        # normal case where clip is longer than fade_seconds*2
+        fade_in = clip[:fade_milliseconds].fade_in(fade_milliseconds)
+
+        middle = clip[fade_milliseconds:-fade_milliseconds]
+        middle_length_sec = len(middle)/1000.0
+        # split middle into 4 parts and fade out the middle half of it
+        quarter_ms = int((middle_length_sec*1000)/4)
+        mid1 = middle[:quarter_ms].fade_out(quarter_ms)
+        mid2 = AudioSegment.silent(duration=quarter_ms)
+        mid3 = AudioSegment.silent(duration=quarter_ms)
+        mid4 = middle[3*quarter_ms:].fade_in(quarter_ms)
+        middle = mid1 + mid2 + mid3 + mid4
+
+        fade_out = clip[-fade_milliseconds:].fade_out(fade_milliseconds)
+
+        clip = fade_in + middle + fade_out
+        return clip
 
 
 def postprocess_file(output_path: Path, metadata: Dict[str, str]) -> None:

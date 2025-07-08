@@ -125,15 +125,12 @@ if __name__ == "__main__":
             )
 
 
-    CLIP_LENGTH_MINUTES = 10
-    OVERLAP_SECONDS = (CLIP_LENGTH_MINUTES*60)/2.0
-    FADE_SECONDS = 5.0
-    desired_juz_length_minutes = 45
+    CLIP_LENGTH_MINUTES = 1
+    OVERLAP_SECONDS = (CLIP_LENGTH_MINUTES*60)*(2.0/3.0)
+    FADE_SECONDS = (CLIP_LENGTH_MINUTES*60)/3.0
+    SPEEDUP_FACTOR = 1.0
     metadata = {
-        "album": quran_data_path.stem,
-        "composer": F"{desired_juz_length_minutes} minutes Juz",
         "genre": "Quran",
-        "title": "Unnamed Clip"
     }
 
     GENERATE_CLIPS = True
@@ -144,7 +141,9 @@ if __name__ == "__main__":
             clip_length_ms=CLIP_LENGTH_MINUTES*60*1000,
             overlap_ms=OVERLAP_SECONDS*1000,
             fade_duration=FADE_SECONDS*1000,
+            speedup_factor=SPEEDUP_FACTOR,
             metadata=None,
+            clip_folder_prefix="thirds_"
             )
 
 

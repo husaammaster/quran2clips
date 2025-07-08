@@ -7,10 +7,24 @@ from typing import Dict
 
 from processflow import postprocess_clip, postprocess_file
 from split_concat import get_sura_range
+from utils import load_quran_numbers
 
 
+# read the json file for sura names
+script_dir = Path(__file__).parent  # Get the directory of the current script
+csv_path = script_dir / "quran_numbers.csv"
+NUM_TO_SURA = load_quran_numbers(csv_path)
 
-def save_clips_no_concat(audio: AudioSegment, sura_num: int, clip_length_ms: int, overlap_ms: int, output_dir: Path, sura_start_times: Dict[str, int], input_dir: Path, fade_ms: int, metadata: Dict[str, str], speedup_factor:float) -> None:
+def save_clips_no_concat(audio: AudioSegment, 
+    reciter_name: str, 
+    sura_num: int, 
+    clip_length_ms: int, 
+    overlap_ms: int, 
+    output_dir: Path,
+    fade_ms: int, 
+    metadata: Dict[str, str], 
+    speedup_factor:float,
+    clip_folder_prefix: str) -> None:
     """
     Saves audio clips of a specified length with overlapping intervals from a combined audio segment.
 
@@ -32,15 +46,31 @@ def save_clips_no_concat(audio: AudioSegment, sura_num: int, clip_length_ms: int
 
     while start < len(audio):
         end = start + clip_length_ms
-        clip = audio[start:end]
-        clip = postprocess_clip(clip, fade_ms / 1000.0)
-        filename = f"sura_{sura_num:03d}_c{clip_num:03d}.mp3"
+        audio_clip = audio[start:end]
+        audio_clip = postprocess_clip(audio_clip, fade_ms / 1000.0)
+
+        reciter_str = "REC-" + reciter_name.replace(' ', '-')
+        sura_str = f"SUR{sura_num:03d}"
+        speedup_factor_str = f"SPD{speedup_factor:.2f}"
+        clip_str = f"CLP{clip_num:03d}-{clip_folder_prefix.replace('_', '')}"
+
+        filename = "_".join([reciter_str, sura_str, speedup_factor_str, clip_str]) + ".mp3"
+        # results in REC-Abdel-Fattah_SUR001_SPD1.00_CLP001.mp3
+
         temp_path = output_dir / f"temp_{filename}"
 
-        clip.export(temp_path, format="mp3")
+        audio_clip.export(temp_path, format="mp3")
         output_path = output_dir / filename
         ffmpeg.input(str(temp_path)).output(str(output_path), codec='mp3', audio_bitrate='128k').run(overwrite_output=True)
         os.remove(temp_path)
+
+        if metadata is None:
+            metadata = {}
+        metadata["album"] = f"Speed {speedup_factor:.2f}x"
+        metadata["artist"] = reciter_name
+        metadata["genre"] = "Quran" + " " + clip_folder_prefix.replace('_', '')
+        sura_name = NUM_TO_SURA[sura_num]
+        metadata["title"] = f"{sura_name} - C{clip_num:03d} S{speedup_factor:.2f}"
         postprocess_file(output_path, metadata)
 
         start = end - overlap_ms
